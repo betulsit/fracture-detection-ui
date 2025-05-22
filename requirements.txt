@@ -1,3 +1,5 @@
-ultralytics
-gradio
-opencv-python
+gradio==5.30.0
+ultralytics==8.3.141
+opencv-python==4.11.0.86
+torch==2.7.0
+torchvision==0.22.0

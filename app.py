@@ -1,43 +1,56 @@
 import gradio as gr
-from ultralytics import YOLO
 import cv2
+import torch
+from ultralytics import YOLO
+import numpy as np
 
-# Load the trained model
-model = YOLO("best.pt")
+# Load default model
+models = {
+    "v1": "fracture_detection_v1_best.pt",
+    "v2": "fracture_detection_v2_best.pt",
+    "v3": "fracture_detection_v3_best.pt"
+}
 
-# Inference function
-def detect_fracture(image):
-    # Run prediction
-    results = model.predict(image, conf=0.25)
-    boxes = results[0].boxes
+# Initial model
+current_model = YOLO(models["v3"])
 
-    # Prepare annotated image
-    annotated = results[0].plot()
-    annotated = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
+def predict(image, model_version):
+    global current_model
 
-    # Prepare detection summary
-    if boxes is None or len(boxes.cls) == 0:
-        summary = "No fractures detected."
-    else:
-        class_names = model.names
-        summary_lines = [f"Detected {len(boxes.cls)} fracture(s):"]
-        for cls_id, score in zip(boxes.cls, boxes.conf):
-            class_name = class_names[int(cls_id)]
-            summary_lines.append(f"- {class_name} ({score:.2f})")
-        summary = "\n".join(summary_lines)
+    # Load selected model if different
+    model_path = models[model_version]
+    if current_model.model != model_path:
+        current_model = YOLO(model_path)
 
-    return annotated, summary
+    results = current_model.predict(image)[0]
 
-# Gradio interface
+    annotated_image = results.plot()
+
+    # Count and list detected classes
+    detections = []
+    for box in results.boxes:
+        cls_id = int(box.cls[0])
+        conf = float(box.conf[0])
+        label = results.names[cls_id]
+        detections.append(f"{label} ({conf:.2f})")
+
+    summary = "No fractures detected." if not detections else f"Detected {len(detections)} fracture(s):\n" + "\n".join(detections)
+
+    return annotated_image, summary
+
+# Gradio UI
 interface = gr.Interface(
-    fn=detect_fracture,
-    inputs=gr.Image(type="numpy", label="Upload X-ray"),
+    fn=predict,
+    inputs=[
+        gr.Image(type="numpy", label="Upload X-ray"),
+        gr.Dropdown(choices=["v1", "v2", "v3"], value="v3", label="Model Version")
+    ],
     outputs=[
-        gr.Image(type="numpy", label="Detected Fractures"),
+        gr.Image(label="Annotated X-ray"),
         gr.Textbox(label="Detection Summary")
     ],
-    title="Fracture Detection Demo",
-    description="Upload an X-ray image to detect fractures using a YOLOv8 model."
+    title="Fracture Detection with YOLOv8",
+    description="Upload an X-ray and select a YOLOv8 model version to detect bone fractures."
 )
 
 # Launch the interface locally

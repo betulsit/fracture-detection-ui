@@ -8,17 +8,8 @@ This project provides an interactive, locally deployable user interface for dete
 - Automatically detects and labels fractures (e.g., humerus, ulna, femur)
 - Displays an annotated image with bounding boxes
 - Provides a text-based summary of the number of detections and their confidence scores
+- Model version selector (e.g., v1, v2, v3)
 - Runs fully offline in a local browser environment
-
-## Requirements
-
-The project requires the following Python packages:
-
-- ultralytics
-- gradio
-- opencv-python
-
-These are listed in the `requirements.txt` file.
 
 ## Setup Instructions
 
@@ -44,7 +35,16 @@ pip install -r requirements.txt
 
 ### 4. Add your trained YOLOv8 model
 
-Place your trained `best.pt` model file in the project root directory. This file is not tracked in the repository and should be added manually.
+Model files (`.pt`) are not included in the repository due to size limitations. You must manually add them to the project folder.
+
+The UI includes a dropdown menu to select between different trained models:
+- `v1` → fracture_detection_v1_best.pt
+- `v2` → fracture_detection_v2_best.pt
+- `v3` → fracture_detection_v3_best.pt (default)
+
+To add additional model versions:
+- Save the new `.pt` file in the project folder.
+- Update the `models` dictionary in `app.py` accordingly.
 
 ## Running the Application
 
@@ -64,9 +64,12 @@ http://127.0.0.1:7860
 
 ```
 fracture-detection-ui/
-├── app.py              # Gradio interface code
-├── best.pt             # YOLOv8 model file (user-provided)
-├── requirements.txt    # Dependency list
-├── .gitignore          # Git exclusions
-└── venv/               # Virtual environment (excluded from repo)
+├── app.py                              # Main UI code
+├── requirements.txt                    # Dependencies
+├── .gitignore                          # Git ignore rules
+├── README.md                           # This file
+├── fracture_detection_v1_best.pt       # YOLOv8 model v1 (manual)
+├── fracture_detection_v2_best.pt       # YOLOv8 model v2 (manual)
+├── fracture_detection_v3_best.pt       # YOLOv8 model v3 (default, manual)
+└── venv/                               # Virtual environment (not tracked)
 ```
