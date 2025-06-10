@@ -1,15 +1,30 @@
 # Fracture Detection UI with YOLOv8
 
-This project provides an interactive, locally deployable user interface for detecting bone fractures in X-ray images using a YOLOv8 object detection model. Built with Gradio and Python, the interface is simple to run, requires no web development knowledge, and is suitable for both research and clinical prototyping.
+This project provides an interactive, locally deployable user interface for detecting bone fractures in X-ray images using YOLOv8 models. Built with Gradio and Python, the interface allows for simple, single-stage fracture detection as well as an advanced two-stage analysis pipeline for specialized models.
 
 ## Features
 
-- Upload and analyze individual X-ray images
-- Automatically detects and labels fractures (e.g., humerus, ulna, femur)
-- Displays an annotated image with bounding boxes
-- Provides a text-based summary of the number of detections and their confidence scores
-- Model version selector (e.g., v1, v2, v3)
-- Runs fully offline in a local browser environment
+### Multiple Analysis Modes
+
+* **Standard Detection**: Upload an unmasked X-ray and get immediate, annotated results.
+* **Two-Stage Analysis**: For specialized models (`v2_masked`), performs an automated pre-detection, generates a "pseudo-mask" to focus on relevant areas, and then runs a detailed analysis.
+* **Direct Masked Detection**: Allows users to upload their own pre-masked images for analysis with compatible models.
+
+### Dynamic User Interface
+
+* The UI layout intelligently adapts, showing single or multiple output images depending on the selected analysis mode.
+
+### Comprehensive Results
+
+* Displays annotated images with bounding boxes, class labels, and confidence scores.
+
+### Model Selection
+
+* A dropdown menu allows for easy switching between different model versions and analysis modes.
+
+### Local & Offline
+
+* Runs fully on your local machine in a web browser, ensuring data privacy.
 
 ## Setup Instructions
 
@@ -23,8 +38,13 @@ cd fracture-detection-ui
 ### 2. Set up a virtual environment
 
 ```bash
+# For macOS/Linux
+python3 -m venv venv
+source venv/bin/activate
+
+# For Windows
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+venv\Scripts\activate
 ```
 
 ### 3. Install dependencies
@@ -33,18 +53,30 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Add your trained YOLOv8 model
+### 4. Download Pre-trained Models
 
-Model files (`.pt`) are not included in the repository due to size limitations. You must manually add them to the project folder.
+The trained model files (`.pt`) are hosted on Google Drive.
 
-The UI includes a dropdown menu to select between different trained models:
-- `v1` → fracture_detection_v1_best.pt
-- `v2` → fracture_detection_v2_best.pt
-- `v3` → fracture_detection_v3_best.pt (default)
+Download the models from the following shared folder:
 
-To add additional model versions:
-- Save the new `.pt` file in the project folder.
-- Update the `models` dictionary in `app.py` accordingly.
+https://drive.google.com/drive/folders/1bABHMNOaeEN5aYWxqEZYc_zB5bQaZRvl?usp=sharing 
+
+Create a `models` folder inside your `fracture-detection-ui` project directory.
+
+Place the downloaded `.pt` files inside this new `models` folder.
+
+Update model paths in `app.py`. Make sure the paths in the `models` dictionary point to the new folder. For example:
+
+```python
+# app.py
+models = {
+    "v1": "models/fracture_detection_v1_best.pt",
+    "v3": "models/fracture_detection_v3_best.pt",
+    "v2_base": "models/fracture_detection_v2_best.pt",
+    "v2_masked": "models/fracture_detection_v2_masked_best.pt",
+    "v2_masked (Direct)": "models/fracture_detection_v2_masked_best.pt"
+}
+```
 
 ## Running the Application
 
@@ -54,22 +86,43 @@ To start the local web interface:
 python app.py
 ```
 
-Once running, the interface will be available at:
+Once running, the interface will be available at: [http://127.0.0.1:7860](http://127.0.0.1:7860)
 
-```
-http://127.0.0.1:7860
-```
+## How to Use the Analysis Modes
 
-## Project Structure
+### Standard Detection (`v1`, `v3`, `v2_base`)
+
+1. Upload a standard, unmasked X-ray image.
+2. Select `v1`, `v3`, or `v2_base`.
+3. Click **Detect Fractures**.
+4. **Result**: A single output image with bounding box annotations will be displayed.
+
+### Two-Stage Analysis (`v2_masked`)
+
+1. Upload a standard, unmasked X-ray image.
+2. Select `v2_masked`.
+3. Click **Detect Fractures**.
+4. **Result**: Two output images will be displayed: the generated pseudo-mask and the final annotated result on that mask.
+
+### Direct Masked Detection (`v2_masked (Direct)`)
+
+1. Upload a pre-masked X-ray image.
+2. Select `v2_masked (Direct)`.
+3. Click **Detect Fractures**.
+4. **Result**: A single output image showing the final detections on your provided masked image.
+
+## Project Structure (Local)
 
 ```
 fracture-detection-ui/
-├── app.py                              # Main UI code
-├── requirements.txt                    # Dependencies
-├── .gitignore                          # Git ignore rules
-├── README.md                           # This file
-├── fracture_detection_v1_best.pt       # YOLOv8 model v1 (manual)
-├── fracture_detection_v2_best.pt       # YOLOv8 model v2 (manual)
-├── fracture_detection_v3_best.pt       # YOLOv8 model v3 (default, manual)
-└── venv/                               # Virtual environment (not tracked)
+├── app.py                                          # Main Gradio UI application code
+├── requirements.txt                                # Project dependencies
+├── .gitignore                                      # Git ignore rules
+├── README.md                                       # This file
+├── models/                                         # Folder for trained models
+│   ├── fracture_detection_v1_best.pt
+│   ├── fracture_detection_v3_best.pt
+│   ├── fracture_detection_v2_best.pt
+│   └── fracture_detection_v2_masked_best.pt
+└── venv/                                           # Virtual environment
 ```
